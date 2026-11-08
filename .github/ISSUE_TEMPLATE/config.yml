@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 邮件 / Email
+    url: mailto:sarsgy01@outlook.com
+    about: GitHub 不便时可直接邮件
+  - name: Gitee 镜像 / Gitee mirror
+    url: https://gitee.com/the-color-of-the-night-sky/dsh-intake-guard
+    about: 国内访问（可能滞后，以 GitHub 为准）

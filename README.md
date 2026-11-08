@@ -144,6 +144,18 @@ node --check lib/index.js
 node test/smoke.mjs
 ```
 
+## 反馈与交流
+
+- **反馈 / 提意见**：GitHub Issues（推荐）https://github.com/sarsgy-wenjian/dsh-intake-guard/issues
+- **国内访问**：Gitee 镜像 https://gitee.com/the-color-of-the-night-sky/dsh-intake-guard （可能滞后，以 GitHub 为准）
+- **邮件**：sarsgy01@outlook.com（GitHub 不便时）
+- **欢迎分享改进**：MIT，fork/PR 都欢迎；调试好的版本可以通过 Issue 或邮件发我，注明改了什么、怎么验证的。
+- 反馈时请**不要贴稿件正文、密钥或隐私**，给最小复现即可。
+
+## 维护
+
+见 [`MAINTAINING.md`](MAINTAINING.md)（版本、发布、Gitee 镜像同步步骤）。
+
 ## License
 
 MIT

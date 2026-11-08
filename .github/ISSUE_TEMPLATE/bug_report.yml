@@ -1,0 +1,52 @@
+name: 问题反馈 / Bug report
+description: 报告安装、材料检测、拦截、分类等异常
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请勿贴稿件正文、密钥或隐私；给最小复现即可。
+        Do not paste private manuscript text, keys, or personal data; a minimal reproduction is enough.
+  - type: input
+    id: dsh_version
+    attributes:
+      label: DSH 版本 / DSH version
+      placeholder: 例如 0.2.1-rc.5
+    validations:
+      required: true
+  - type: input
+    id: plugin_version
+    attributes:
+      label: 插件版本 / Plugin version
+      placeholder: 例如 v0.2.1
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 现象 / What happened
+      description: 期望发生什么，实际发生什么
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤 / Reproduction
+      description: 材料类型（附件/截图/代码/粘贴文本）、说了什么、用了哪个工具
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关输出（脱敏）/ Logs (redacted)
+      description: intake_status 输出、错误信息；删掉路径/密钥/隐私
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 隐私确认 / Privacy
+      options:
+        - label: 我已确认不含稿件正文、密钥或隐私 / I confirm no private content is included
+          required: true

@@ -139,6 +139,18 @@ node --check lib/index.js
 node test/smoke.mjs
 ```
 
+## Feedback & mirror
+
+- **Issues** (preferred): https://github.com/sarsgy-wenjian/dsh-intake-guard/issues
+- **China mirror**: https://gitee.com/the-color-of-the-night-sky/dsh-intake-guard (may lag; GitHub is canonical)
+- **Email**: sarsgy01@outlook.com
+- **Improvements welcome**: MIT; fork/PR, or send the change + verification notes via Issue/email.
+- Please do not paste private manuscript text, keys, or personal data; a minimal reproduction is enough.
+
+## Maintaining
+
+See [`MAINTAINING.md`](MAINTAINING.md).
+
 ## License
 
 MIT

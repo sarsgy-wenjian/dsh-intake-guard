@@ -1,0 +1,38 @@
+name: 建议 / Feedback
+description: 使用场景、改进建议、分享调试好的版本
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎分享你的使用场景、误判案例或改好的版本。
+        Welcome to share use cases, misclassification examples, or your improved version.
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景 / Scenario
+      description: 项目类型、材料类型、为什么需要它
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 建议 / Suggestion
+      description: 希望怎么改；如果有分类误判，请给例子
+    validations:
+      required: false
+  - type: textarea
+    id: share
+    attributes:
+      label: 分享改进 / Share your version
+      description: 如果你调好了，说明基于哪个版本、改了什么、怎么验证的（也可以邮件）
+    validations:
+      required: false
+  - type: input
+    id: contact
+    attributes:
+      label: 联系方式（可选）/ Contact (optional)
+      description: 邮箱或 GitHub 用户名；不想公开可留空
+    validations:
+      required: false

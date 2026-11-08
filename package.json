@@ -16,7 +16,10 @@
     "基准"
   ],
   "license": "MIT",
-  "author": "sarsgy-wenjian",
+  "author": {
+    "name": "sarsgy-wenjian",
+    "email": "sarsgy01@outlook.com"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/sarsgy-wenjian/dsh-intake-guard.git"
