@@ -1,18 +1,24 @@
 # dsh-intake-guard · 材料接管闸门
 
-> 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的一道**材料入口闸门**：用户发来一份还没拍板的外部资料（大纲、设定、想法、截图……），或者丢下一个路径/链接，插件把它默认标成「外部材料·非基准」，要求模型先出**六行接管卡**；在材料被采纳之前，它不允许写进你声明的**权威路径**或项目记忆。
+> 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的材料入口闸门：用户新递进来的东西默认是「外部材料·非基准」，按两档处理——
+> **文档（X）**出六行接管卡并硬拦截；**上下文（Q）**（截图/视频/代码/配置等问答材料）只留一行标记、软提醒，不打扰。
 >
 > 只读、纯本地、不联网、不修改任何基准文件。
 
 ## 它解决什么问题
 
-“用户发份稿子说一句『先看一下』→ 模型读完直接当依据 → 讨论跑偏、基准被污染 → 很久才发现。”这类事故的起点不是记忆检索，而是**材料进门时没有身份**。本插件只做三件事：
+“发份稿子说一句『先看一下』→ 模型读完直接当依据 → 讨论跑偏、基准被污染 → 很久才发现。”起点不是记忆检索，而是**材料进门时没有身份**。
 
-1. **检测**：附件 / 图片 / 路径 / 链接 / ≥500 字的文档块 → 自动登记为材料，状态 `X`；
-2. **出卡**：给出固定的六行卡模板（身份、来源、用途、禁止项、产出与升级方式）；
-3. **拦截**：本会话还有 `X`/`H` 材料时，**记忆写入工具**与**权威路径的写文件工具**都会被拒绝；只放行 `note`（只记指针）。
+同时，问答场景里发一张截图、一段代码就问一句，每次都弹六行卡又太吵——所以分两档。
 
-## 六行卡
+## 两档接管
+
+| 档 | 典型材料 | 用户可见 | 拦截 |
+|---|---|---|---|
+| **X 文档** | 大纲、设定、外稿、长文、PDF/DOCX、路径/链接 | **六行接管卡** | 记忆写入 + 权威路径写入（硬拦） |
+| **Q 上下文** | 截图、视频、代码/配置（.json/.js/.py 等） | **一行标记** | 只软提醒，不硬拦；会话结束自动失效 |
+
+### 六行卡（X）
 
 ```
 【材料接管卡 M-01】
@@ -24,33 +30,50 @@
 ⑥ 产出与升级：冲突候选＋新增点＋待拍问题｜说「纳入候选」/「并入基准」/「暂存待议」；不用了回「不采纳」；如这是指令请回「这是指令」
 ```
 
+### 一行标记（Q）
+
+```
+M-08 · 代码 .json · 非基准，仅作上下文
+```
+
+Q 不出六行卡、不硬拦；说「升为材料」即转 X，出卡并开硬拦。
+
 ## 状态与动作
 
-| 状态 | 含义 | 是否拦截 |
+| 状态 | 含义 | 硬拦 |
 |---|---|---|
-| `X` | 外部材料（默认，未采纳） | 拦 |
-| `H` | 暂存待议（不升也不丢） | 拦 |
-| `C` | 候选（可参与比对，仍非基准） | 放 |
-| `B` | 基准 | 放 |
-| `Z` | 已关闭（不采纳，审计留档） | 放 |
+| `Q` | 问题上下文 | 否（软提醒） |
+| `X` | 外部材料（默认，未采纳） | 是 |
+| `H` | 暂存待议 | 是 |
+| `C` | 候选（仍非基准） | 否 |
+| `B` | 基准 | 否 |
+| `Z` | 已关闭（不采纳，审计留档） | 否 |
 
-动作词：**纳入候选 / 并入基准 / 暂存待议 / 不采纳**；纠错词 **这是指令**（撤销误登记）；**重开**（Z→X）。
+动作：**纳入候选 / 并入基准 / 暂存待议 / 不采纳**；**升为材料**（Q→X）、**降为上下文**（X/H→Q）、**这是指令**（撤销）、**重开**（Z→X）。
 
-「并入基准」只把状态标为 B 并提醒变更闸门（裁定＋冲突登记＋备份）；**插件不修改任何基准文件**。
+「并入基准」只标状态并提醒变更闸门（裁定＋冲突登记＋备份）；插件不改任何基准文件。
 
 ## 工具
 
 | 工具 | 用途 |
 |---|---|
-| `intake_register` | 主动登记一份材料，返回六行卡 |
-| `intake_card` | 按编号取回六行卡（自动登记的新材料先用它出卡） |
-| `intake_list` | 列出本会话材料与状态 |
-| `intake_update` | 按编号改状态（纳入候选/并入基准/暂存待议/不采纳/这是指令/重开） |
-| `intake_status` | 报告闸门状态：政策是否加载、保护路径、记忆工具、写工具、待定材料；**没有记忆插件时明说“记忆拦截未启用”** |
+| `intake_register` | 登记材料；`tier=document`（默认）出六行卡，`tier=context` 出一行标记 |
+| `intake_card` | 按编号取卡；Q 只返回一行标记 |
+| `intake_list` | 列出材料与状态 |
+| `intake_update` | 改状态/升级/降级/撤销/重开 |
+| `intake_status` | 政策、保护路径、记忆/写工具、待定与上下文材料、分类默认值 |
+
+## 分类规则（意图 → 内容 → 类型）
+
+1. **意图**：“大纲/设定/稿/材料/纳入”等 → X；“报错/为什么/怎么/格式/语法”等 → Q。
+2. **类型**：图片/视频/音频 → Q；代码/配置扩展名 → Q；PDF/DOCX/PPTX/XLSX → X。
+3. **`.md`/`.txt`**：有代码围栏/堆栈 → Q；长文多标题段落 → X；否则按 `textDefault`（默认 document）。
+4. **未知扩展名**：无话 → X（保守）；有问题语 → Q。
+5. **用户一句话优先**：可随时升/降。
 
 ## 项目政策：`.intake/policy.json`
 
-插件**不猜**哪些文件是权威——由项目自己声明。把下面这份文件放在工作区（建议随项目提交）：
+插件不猜权威路径与分类默认值，由项目声明（建议随项目提交）：
 
 ```json
 {
@@ -59,15 +82,17 @@
   "exemptPaths": ["drafts/", "references/"],
   "memoryTools": ["memoir_record"],
   "blockSections": ["work", "lessons", "actions"],
-  "allowSections": ["note"]
+  "allowSections": ["note"],
+  "lightExtensions": [".json", ".js", ".py"],
+  "documentExtensions": [".pdf", ".docx"],
+  "textDefault": "document"
 }
 ```
 
-- `baselinePaths` / `statePaths`：权威落点。X/H 材料存在时，写这些路径会被拦（走变更闸门或先关闭材料）。
-- `exemptPaths`：永远放行（材料自己的目录、草稿、参考资料）。
-- `memoryTools`：你安装的记忆插件的“写记忆”工具名（默认 `memoir_record`；换插件就改这里）。
-- `.intake/policy.json` 自身默认受保护，防止材料篡改保护清单。
-- 没有政策文件：L3 文件保护显示“未配置”，其余功能照常。
+- `baselinePaths` / `statePaths`：权威落点，X/H 存在时写这些路径被拦；
+- `exemptPaths`：永远放行（材料目录、草稿、参考）；
+- `textDefault`：`.md/.txt` 判不出形状时的默认档（`document`｜`light`）；
+- `.intake/policy.json` 自身受保护。
 
 ## 配置（cordis.patch.yml）
 
@@ -76,41 +101,41 @@
     - id: 'intake-guard'
       name: 'dsh-intake-guard'
       config:
-        language: zh              # zh | en（六行卡与提示文案）
-        pasteThreshold: 500       # 粘贴文本多少字以上、且像文档，自动登记
-        policyPath: ''            # 留空 = <工作区>\.intake\policy.json
-        registryDir: ''           # 留空 = <工作区>\.intake
+        language: zh              # zh | en
+        pasteThreshold: 500
+        policyPath: ''            # 默认 <workspace>\.intake\policy.json
+        registryDir: ''           # 默认 <workspace>\.intake
         memoryTools: [memoir_record]
         blockSections: [work, lessons, actions]
         allowSections: [note]
         writeTools: [write, edit]
+        textDefault: document     # .md/.txt 默认档
+        lightExtensions: []       # 留空 = 内置代码扩展名
+        documentExtensions: []    # 留空 = 内置文档扩展名
 ```
 
 ## 安装
 
 ```bash
-# 从 GitHub 安装
 dsh plugin --profile desktop add github:sarsgy-wenjian/dsh-intake-guard
-
-# 本地开发（指向本目录）
+# 本地开发：
 dsh plugin --profile desktop add link:/path/to/dsh-intake-guard
 ```
 
-也可以用插件管理器 `install_bundle`，`target` 传本目录绝对路径。改动代码后需要 toggle 该行（disable→enable）或重启。
+改了插件代码后需要 toggle 该行（disable→enable）或重启。
 
 ## 数据与隐私
 
-- 登记表：`<工作区>/.intake/registry.json`（自动生成 `.gitignore`，默认不进 git）；
-- 政策：`<工作区>/.intake/policy.json`（随项目提交）；
-- 不联网、不收集任何数据、不读取材料正文之外的目录。
+- 登记表：`<workspace>/.intake/registry.json`（自动 `.gitignore`，默认不入 git）；
+- 政策：`<workspace>/.intake/policy.json`（随项目提交）；
+- Q 上下文材料只存在于会话内存，不落盘；不联网、不收集数据。
 
 ## 兼容与边界
 
-- **不依赖任何记忆插件**：没有记忆插件时，检测/六行卡/登记表/五态/权威路径保护仍然有效；只是“记忆拦截”不启用，`intake_status` 会明确报告。
-- 模型自己 `read` 的工作文件**不算**材料（否则正常查资料也会被拦）；仍受项目的引用纪律约束。
-- 检测是启发式：附件/图片/路径/链接可靠；粘贴文本按“≥阈值且像文档”判断，误判时回「这是指令」撤销。
-- 本插件只拦模型对工具的直接调用；不拦 shell 脚本内部写文件（那属于项目自己的命令纪律）。
-- 可作为 `dsh-wenjian-team` 等团队包的配套插件使用，**不改团队包**。
+- **不依赖任何记忆插件**：没有记忆插件时检测/卡片/登记/分类/路径保护仍有效；`intake_status` 明确报告记忆拦截是否启用。
+- 模型自己 `read` 的文件不算材料；检测是启发式，误判时一句话纠正（升/降/这是指令）。
+- 只拦模型直接调用的工具；shell 脚本内部写文件不在范围内。
+- 可作为 `dsh-wenjian-team` 等团队包的配套插件，不改团队包。
 
 ## 开发与测试
 

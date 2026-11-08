@@ -1,6 +1,6 @@
 {
   "name": "dsh-intake-guard",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Material intake guard for DeepSeek Harness: newly provided material defaults to external and non-baseline, gets a six-line intake card, and cannot be written into declared authority paths or project memory while unadopted. Local only, no network.",
   "keywords": [
     "deepseek-harness",

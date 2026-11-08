@@ -1,18 +1,22 @@
 # dsh-intake-guard · material intake gate
 
-> A material intake gate for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH). When a user hands in an undecided external document (outline, spec, idea, screenshot…) or drops a path/link, the plugin registers it as **external, non-baseline material**, requires a six-line **intake card**, and blocks writes to the project's declared **authority paths** and project memory until the material is adopted.
+> A material intake gate for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH). Anything newly handed in defaults to **external, non-baseline material** and is handled in two tiers:
+> **Document (X)** gets a six-line intake card and a hard write guard; **Context (Q)** (screenshots, video, code/config used in a question) gets a one-line marker and a soft warning only.
 >
 > Local only, no network, never edits baseline files.
 
 ## Problem it solves
 
-"Here, take a look" → the model treats the material as fact → the discussion drifts and the baseline gets polluted. The root cause is that incoming material has **no identity** at the door. The plugin does three things:
+"Here, take a look" → the model treats the material as fact → the discussion drifts and the baseline gets polluted. The root cause is that incoming material has **no identity** at the door. But showing a full six-line card for every screenshot or code snippet used in Q&A is too noisy — hence two tiers.
 
-1. **Detect**: attachment / image / path / link / document block ≥ threshold → register as material with state `X`.
-2. **Render**: a fixed six-line intake card (identity, source, purpose, prohibitions, output & upgrade).
-3. **Guard**: while `X`/`H` material exists in the session, memory-write tools and write tools targeting authority paths are denied; `note` (pointer only) is allowed.
+## Two tiers
 
-## The six lines
+| Tier | Typical material | User-visible | Guard |
+|---|---|---|---|
+| **X document** | outline, spec, draft, long text, PDF/DOCX, path/link | **six-line intake card** | memory writes + authority-path writes (hard block) |
+| **Q context** | screenshot, video, code/config (.json/.js/.py) | **one-line marker** | soft warning only; expires with the session |
+
+### Six-line card (X)
 
 ```
 【Intake card M-01】
@@ -24,33 +28,50 @@
 6. Output & upgrade: conflict candidates + additions + questions | "candidate" / "baseline" / "hold"; "close" if not needed; "instruction" if this is an instruction
 ```
 
+### One-line marker (Q)
+
+```
+M-08 · code .json · non-baseline, context only
+```
+
+Say "promote" to turn Q into X (card + hard guard).
+
 ## States and actions
 
-| State | Meaning | Guarded |
+| State | Meaning | Hard guard |
 |---|---|---|
-| `X` | external material (default, unadopted) | yes |
+| `Q` | question context | no (soft) |
+| `X` | external material (unadopted) | yes |
 | `H` | parked | yes |
-| `C` | candidate (still not baseline) | no |
+| `C` | candidate (not baseline) | no |
 | `B` | baseline | no |
 | `Z` | closed (not adopted; audit row kept) | no |
 
-Actions: **candidate / baseline / hold / close**; correction word **instruction** (cancel a mistaken registration); **reopen** (Z→X).
+Actions: **candidate / baseline / hold / close**; **promote** (Q→X), **demote** (X/H→Q), **instruction** (cancel), **reopen** (Z→X).
 
-"baseline" only marks state B and reminds about the change gate (decision + conflict record + backup); the plugin never edits baseline files.
+"baseline" only marks state B and reminds about the change gate; the plugin never edits baseline files.
 
 ## Tools
 
 | Tool | Purpose |
 |---|---|
-| `intake_register` | register material, return the six-line card |
-| `intake_card` | render the card for one ID |
+| `intake_register` | register material; `tier=document` (default) card, `tier=context` one-line marker |
+| `intake_card` | render the card by ID; Q returns the marker |
 | `intake_list` | list materials and states |
-| `intake_update` | change state (candidate/baseline/hold/close/instruction/reopen) |
-| `intake_status` | report policy status, protected paths, memory tools, write tools, pending material — and explicitly say when the memory guard is inactive |
+| `intake_update` | change state / promote / demote / cancel / reopen |
+| `intake_status` | policy, protected paths, memory/write tools, pending/context material, classifier defaults |
+
+## Classifier (intent → content → type)
+
+1. **Intent**: outline/spec/draft/material words → X; error/why/how/format words → Q.
+2. **Type**: image/video/audio → Q; code/config extensions → Q; PDF/DOCX/PPTX/XLSX → X.
+3. **.md/.txt**: code fences/stack traces → Q; long prose with headings → X; otherwise `textDefault`.
+4. **Unknown extension**: no words → X (conservative); question cues → Q.
+5. **User override**: promote/demote at any time.
 
 ## Project policy: `.intake/policy.json`
 
-The plugin never guesses authority paths — the project declares them:
+The plugin never guesses authority paths or classifier defaults — the project declares them:
 
 ```json
 {
@@ -59,15 +80,14 @@ The plugin never guesses authority paths — the project declares them:
   "exemptPaths": ["drafts/", "references/"],
   "memoryTools": ["memoir_record"],
   "blockSections": ["work", "lessons", "actions"],
-  "allowSections": ["note"]
+  "allowSections": ["note"],
+  "lightExtensions": [".json", ".js", ".py"],
+  "documentExtensions": [".pdf", ".docx"],
+  "textDefault": "document"
 }
 ```
 
-- `baselinePaths` / `statePaths`: authority sinks; writes are denied while X/H exists.
-- `exemptPaths`: always allowed (material folders, drafts, references).
-- `memoryTools`: write-tool names of your memory plugins (default `memoir_record`).
-- `.intake/policy.json` protects itself.
-- No policy file → file guard reports "not configured"; everything else still works.
+`.intake/policy.json` protects itself.
 
 ## Configuration
 
@@ -76,38 +96,40 @@ The plugin never guesses authority paths — the project declares them:
     - id: 'intake-guard'
       name: 'dsh-intake-guard'
       config:
-        language: en              # zh | en (card and prompt text)
+        language: en
         pasteThreshold: 500
-        policyPath: ''            # default: <workspace>\.intake\policy.json
-        registryDir: ''           # default: <workspace>\.intake
+        policyPath: ''
+        registryDir: ''
         memoryTools: [memoir_record]
         blockSections: [work, lessons, actions]
         allowSections: [note]
         writeTools: [write, edit]
+        textDefault: document
+        lightExtensions: []
+        documentExtensions: []
 ```
 
 ## Install
 
 ```bash
 dsh plugin --profile desktop add github:sarsgy-wenjian/dsh-intake-guard
-# or local link:
+# local link:
 dsh plugin --profile desktop add link:/path/to/dsh-intake-guard
 ```
 
-After editing plugin code, toggle the row (disable→enable) or restart.
+Toggle the row (disable→enable) or restart after editing plugin code.
 
 ## Data & privacy
 
-- Registry: `<workspace>/.intake/registry.json` (auto `.gitignore`, not committed by default);
+- Registry: `<workspace>/.intake/registry.json` (auto `.gitignore`);
 - Policy: `<workspace>/.intake/policy.json` (committed with the project);
-- No network, no telemetry, no data collection.
+- Q context material lives in session memory only, never persisted; no network, no telemetry.
 
 ## Compatibility and limits
 
-- **No memory plugin required**: without one, detection/card/registry/states/authority-path protection still work; only memory interception is inactive, and `intake_status` says so.
-- Files the model reads by itself are **not** material; normal research is not blocked.
-- Detection is heuristic; say "instruction" to cancel a false registration.
-- The guard covers direct tool calls; writes performed inside shell scripts are outside its scope.
+- **No memory plugin required**; `intake_status` reports whether memory interception is active.
+- Files the model reads by itself are not material; detection is heuristic and one word corrects it.
+- The guard covers direct tool calls; writes inside shell scripts are out of scope.
 - Designed to sit alongside team packs such as `dsh-wenjian-team` without modifying them.
 
 ## Development
