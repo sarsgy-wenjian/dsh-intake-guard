@@ -40,9 +40,10 @@
 
 ## Gitee 镜像
 
-- 首次：Gitee 网页「新建仓库 → 导入已有仓库」，填 GitHub 地址（零令牌权限，最快）；
-- 更新：若令牌有写权限，可用 Gitee Contents API 推送改动的文件；否则重新导入 / 手动上传；
-- 在 README 标注「镜像可能滞后，以 GitHub 为准」。
+- 已建立：https://gitee.com/the-color-of-the-night-sky/dsh-intake-guard （2026-11-08 从 GitHub 导入，默认分支 `main`；关键文件 size 与 GitHub 一致）
+- 当前 `GITEE_PAT` 是**仓库级令牌**（只对 `wenjian-agent-team` 有效），**不能读写新镜像**；脚本化同步前需换成账号级令牌（带 `projects` 读写）并重启 DSH。
+- 无法升级令牌时：GitHub 更新后到 Gitee 网页「重新导入」或手动上传改动文件。
+- README 已标注「镜像可能滞后，以 GitHub 为准」。
 
 ## 联系方式
 
