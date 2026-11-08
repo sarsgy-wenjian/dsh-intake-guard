@@ -1,0 +1,8 @@
+{
+  "baselinePaths": ["baseline/", "docs/spec/"],
+  "statePaths": ["STATE.md"],
+  "exemptPaths": ["drafts/", "references/"],
+  "memoryTools": ["memoir_record"],
+  "blockSections": ["work", "lessons", "actions"],
+  "allowSections": ["note"]
+}

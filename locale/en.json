@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Intake guard",
+    "description": "Marks newly provided material as external and non-baseline, renders a six-line intake card, and blocks project-memory writes while the material is unadopted."
+  }
+}

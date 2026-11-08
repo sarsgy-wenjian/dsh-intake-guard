@@ -1,0 +1,4 @@
+node_modules/
+.intake/registry.json
+.intake/registry.json.tmp
+*.log

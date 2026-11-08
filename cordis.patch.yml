@@ -1,0 +1,28 @@
+# dsh-intake-guard bundle patch: one insert registering the material intake guard.
+# The row id MUST match the exported cordis `name` in lib/index.js.
+- insert:
+    - id: 'intake-guard'
+      name: 'dsh-intake-guard'
+      config:
+        language: zh
+        # 粘贴文本达到多少字、且像文档时，自动登记为材料
+        pasteThreshold: 500
+        # 政策文件；留空 = <工作区>\.intake\policy.json
+        policyPath: ''
+        # 登记表目录；留空 = <工作区>\.intake
+        registryDir: ''
+        # 记忆写入工具（可按自己安装的记忆插件追加）
+        memoryTools:
+          - memoir_record
+        # 记忆工具里，这些 section 视为“结论”并被拦截
+        blockSections:
+          - work
+          - lessons
+          - actions
+        # 允许写入的 section（只记指针）
+        allowSections:
+          - note
+        # 写文件工具（用于保护权威路径）
+        writeTools:
+          - write
+          - edit

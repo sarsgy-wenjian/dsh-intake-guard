@@ -1,0 +1,58 @@
+{
+  "name": "dsh-intake-guard",
+  "version": "0.2.0",
+  "description": "Material intake guard for DeepSeek Harness: newly provided material defaults to external and non-baseline, gets a six-line intake card, and cannot be written into declared authority paths or project memory while unadopted. Local only, no network.",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "intake",
+    "baseline",
+    "memory",
+    "material",
+    "guard",
+    "材料",
+    "接管卡",
+    "基准"
+  ],
+  "license": "MIT",
+  "author": "sarsgy-wenjian",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sarsgy-wenjian/dsh-intake-guard.git"
+  },
+  "homepage": "https://github.com/sarsgy-wenjian/dsh-intake-guard",
+  "bugs": {
+    "url": "https://github.com/sarsgy-wenjian/dsh-intake-guard/issues"
+  },
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "locale",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "examples"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0-0"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
